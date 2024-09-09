@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Patients {
+  p_id       Int     @id @default(autoincrement())
+  p_name     String
+  p_contact  Int?    @unique
+  p_email    String?
+  p_dob      String
+  p_gender   String
+  p_hrs      String
+  p_fp       Bytes   // Raw fingerprint data without @unique constraint
+
+  Appointments Appointments[]
+  Treatment    Treatment?
+
+  @@unique([p_contact, p_email])
+}
+
+
+model Doctor {
+  d_id         Int     @id @default(autoincrement())
+  d_name       String
+  d_speciality String
+  d_contact    Int
+  d_email      String?
+  d_license    String
+
+  Appointments Appointments[]
+  Treatment    Treatment?
+
+  @@unique([d_contact, d_license])
+}
+
+model Pharmacy {
+  c_id      Int     @id @default(autoincrement())
+  c_name    String
+  c_contact Int?
+  c_email   String?
+  c_license String
+}
+
+model Appointments {
+  a_id      Int     @id @default(autoincrement())
+  p_id      Int
+  d_id      Int
+  a_date    String
+  a_status  String  @default("Scheduled")
+
+  Patients  Patients  @relation(fields: [p_id], references: [p_id])
+  Doctor    Doctor    @relation(fields: [d_id], references: [d_id])
+}
+
+model Treatment {
+  t_id       Int     @id @default(autoincrement())
+  p_id       Int     @unique
+  d_id       Int     @unique
+  symptoms   String
+  diagnosis  String
+  details    Bytes?
+
+  Patients   Patients  @relation(fields: [p_id], references: [p_id])
+  Doctor     Doctor    @relation(fields: [d_id], references: [d_id])
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
