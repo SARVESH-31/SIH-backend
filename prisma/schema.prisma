@@ -13,73 +13,53 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Patients {
-  p_id       Int     @id @default(autoincrement())
-  p_name     String
-  p_contact  Int?    @unique
-  p_email    String?
-  p_dob      String
-  p_gender   String
-  p_hrs      String
-  p_fp       Bytes   // Raw fingerprint data without @unique constraint
-
-  Appointments Appointments[]
-  Treatment    Treatment?
-
-  @@unique([p_contact, p_email])
+model User {
+  id         Int      @id @default(autoincrement())
+  name       String
+  email      String   @unique
+  password   String
+  mobileNumber String @unique
+  aadharNumber String @unique
+  // Relations
+  Patient    Patients? @relation("UserToPatient")
+  Doctor     Doctor?   @relation("UserToDoctor")
+  Pharmacist Pharmacy? @relation("UserToPharmacy")
 }
 
+model Patients {
+  p_id       Int      @id @default(autoincrement())
+  name       String
+  contact    String
+
+  // Relations
+  User       User?    @relation("UserToPatient", fields: [p_id], references: [id], map: "Patient_User_fkey")
+  Treatment  Treatment?
+}
 
 model Doctor {
-  d_id         Int     @id @default(autoincrement())
-  d_name       String
-  d_speciality String
-  d_contact    Int
-  d_email      String?
-  d_license    String
+  d_id       Int      @id @default(autoincrement())
+  name       String
+  specialty  String
 
-  Appointments Appointments[]
-  Treatment    Treatment?
-
-  @@unique([d_contact, d_license])
+  // Relations
+  User       User?    @relation("UserToDoctor", fields: [d_id], references: [id], map: "Doctor_User_fkey")
+  Treatment  Treatment?
 }
 
 model Pharmacy {
-  c_id      Int     @id @default(autoincrement())
-  c_name    String
-  c_contact Int?
-  c_email   String?
-  c_license String
-}
+  c_id       Int      @id @default(autoincrement())
+  name       String
 
-model Appointments {
-  a_id      Int     @id @default(autoincrement())
-  p_id      Int
-  d_id      Int
-  a_date    String
-  a_status  String  @default("Scheduled")
-
-  Patients  Patients  @relation(fields: [p_id], references: [p_id])
-  Doctor    Doctor    @relation(fields: [d_id], references: [d_id])
+  // Relations
+  User       User?    @relation("UserToPharmacy", fields: [c_id], references: [id], map: "Pharmacy_User_fkey")
 }
 
 model Treatment {
-  t_id       Int     @id @default(autoincrement())
-  p_id       Int     @unique
-  d_id       Int     @unique
-  symptoms   String
-  diagnosis  String
-  details    Bytes?
+  t_id       Int      @id @default(autoincrement())
+  description String
+  date        DateTime
 
-  Patients   Patients  @relation(fields: [p_id], references: [p_id])
-  Doctor     Doctor    @relation(fields: [d_id], references: [d_id])
+  // Relations with unique foreign key names
+  Patient     Patients? @relation(fields: [t_id], references: [p_id], map: "Treatment_Patient_fkey")
+  Doctor      Doctor?   @relation(fields: [t_id], references: [d_id], map: "Treatment_Doctor_fkey")
 }
-
-model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-}
-

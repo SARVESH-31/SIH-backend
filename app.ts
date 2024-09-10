@@ -1,19 +1,18 @@
-// app.ts
 import express from 'express';
 import dotenv from 'dotenv';
-import userRoutes from './routes/userRoutes';
+import userRoutes from './routes/userRoutes'; // Make sure this path is correct
 import prisma from './config/db';
 
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5555;
 
 // Middleware to parse JSON
 app.use(express.json());
 
-// Routes
-app.use('/users', userRoutes);
+// Mount user routes with `/api` as base path
+app.use('/api', userRoutes);
 
 // Test DB connection
 prisma.$connect()
