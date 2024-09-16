@@ -14,44 +14,47 @@ datasource db {
 }
 
 model User {
-  id         Int      @id @default(autoincrement())
-  name       String
-  email      String   @unique
-  password   String
-  mobileNumber String @unique
-  aadharNumber String @unique
+  id           Int        @id @default(autoincrement())
+  name         String
+  email        String     @unique
+  password     String
+  mobileNumber String     @unique
+  aadharNumber String     @unique
   // Relations
-  Patient    Patients? @relation("UserToPatient")
-  Doctor     Doctor?   @relation("UserToDoctor")
-  Pharmacist Pharmacy? @relation("UserToPharmacy")
+  Patient      Patients?  @relation("UserToPatient")
+  Doctor       Doctor?    @relation("UserToDoctor")
+  Pharmacist   Pharmacy?  @relation("UserToPharmacy")
 }
 
 model Patients {
-  p_id       Int      @id @default(autoincrement())
+  p_id       Int        @id @default(autoincrement())
   name       String
   contact    String
 
   // Relations
-  User       User?    @relation("UserToPatient", fields: [p_id], references: [id], map: "Patient_User_fkey")
+  User       User?      @relation("UserToPatient", fields: [p_id], references: [id], map: "Patient_User_fkey")
   Treatment  Treatment?
+  Appointments Appointment[]
 }
 
 model Doctor {
-  d_id       Int      @id @default(autoincrement())
+  d_id       Int        @id @default(autoincrement())
   name       String
   specialty  String
 
   // Relations
-  User       User?    @relation("UserToDoctor", fields: [d_id], references: [id], map: "Doctor_User_fkey")
+  User       User?      @relation("UserToDoctor", fields: [d_id], references: [id], map: "Doctor_User_fkey")
   Treatment  Treatment?
+  Schedule   Schedule[] @relation("DoctorSchedule")
+  Appointments Appointment[]
 }
 
 model Pharmacy {
-  c_id       Int      @id @default(autoincrement())
+  c_id       Int        @id @default(autoincrement())
   name       String
 
   // Relations
-  User       User?    @relation("UserToPharmacy", fields: [c_id], references: [id], map: "Pharmacy_User_fkey")
+  User       User?      @relation("UserToPharmacy", fields: [c_id], references: [id], map: "Pharmacy_User_fkey")
 }
 
 model Treatment {
@@ -62,4 +65,38 @@ model Treatment {
   // Relations with unique foreign key names
   Patient     Patients? @relation(fields: [t_id], references: [p_id], map: "Treatment_Patient_fkey")
   Doctor      Doctor?   @relation(fields: [t_id], references: [d_id], map: "Treatment_Doctor_fkey")
+}
+
+model Schedule {
+  id         Int       @id @default(autoincrement())
+  doctorId   Int
+  date       DateTime
+  timeSlots  Json  // Array of time slots, e.g., ['09:00', '10:00', '11:00']
+
+  // Relations
+  Doctor     Doctor   @relation("DoctorSchedule", fields: [doctorId], references: [d_id])
+}
+
+model Appointment {
+  a_id       Int      @id @default(autoincrement())
+  p_id       Int
+  d_id       Int
+  a_date     DateTime
+  symptoms String
+  a_status   String   @default("Scheduled")
+  timeSlots   String 
+
+  // Relations
+  Patient    Patients @relation(fields: [p_id], references: [p_id])
+  Doctor     Doctor   @relation(fields: [d_id], references: [d_id])
+  Tickets    Ticket[]
+}
+
+model Ticket {
+  id           Int      @id @default(autoincrement())
+  appointmentId Int
+  qrImage      String   // Store URL or path to the QR image
+
+  // Relations
+  Appointment  Appointment @relation(fields: [appointmentId], references: [a_id])
 }

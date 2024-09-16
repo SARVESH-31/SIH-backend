@@ -1,17 +1,17 @@
-import express from 'express';
-import dotenv from 'dotenv';
-import userRoutes from './routes/userRoutes'; // Make sure this path is correct
-import prisma from './config/db';
+const express = require('express');
+const dotenv = require('dotenv');
+const userRoutes = require('./routes/userRoutes');  // CommonJS require
+const prisma = require('./config/db');
 
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 5555;
+const port = process.env.PORT || 5556;
 
 // Middleware to parse JSON
 app.use(express.json());
 
-// Mount user routes with `/api` as base path
+// Use the routes
 app.use('/api', userRoutes);
 
 // Test DB connection
